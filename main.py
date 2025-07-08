@@ -1,17 +1,16 @@
-import pandas as pd
+import pandas as pd 
+import plotly.graph_objs as go
 import sys
 
 # to handle the output of some characters
 sys.stdout.reconfigure(encoding='utf-8')
 
-df = pd.read_csv('Bildung.csv', sep=';') 
+df = pd.read_csv('./Bildung.csv', sep=';') 
 
 # avoid NaNs in result
 cols = ['germans_male', 'foreigns_male', 'germans_female', 'foreigns_female']
 df[cols] = df[cols].fillna(0)
 
-
-# task 1: in which wintersemester were there the most students?
 df['total_students'] = (
     df['germans_male']
   + df['foreigns_male']
@@ -19,34 +18,124 @@ df['total_students'] = (
   + df['foreigns_female']
 )
 
-total_students_by_ws = df.groupby('semester', as_index=True)['total_students'].sum()
+####
+# task 1: in which wintersemester were there the most students?
+totals_students_by_ws = df.groupby('semester', as_index=True)['total_students'].sum()
 
-semester_with_most_students   = total_students_by_ws.idxmax()
-student_count = total_students_by_ws.max()
+semester_with_most_students   = totals_students_by_ws.idxmax()
+student_count = totals_students_by_ws.max()
 
-print(f"The semester {semester_with_most_students!r} had the most students with a total of {student_count:,} students")
+fig = go.Figure()
 
-# task 2: which field of study had the most foreign students?
+totals_students_by_ws = totals_students_by_ws.reset_index()
+
+fig.add_trace(go.Scatter(
+    x=totals_students_by_ws["semester"],
+    y=totals_students_by_ws["total_students"],
+    mode="lines+markers",
+    name="Total Students",
+    line=dict(color="blue")
+))
+
+fig.add_trace(go.Scatter(
+    x=[semester_with_most_students],
+    y=[student_count],
+    mode="markers+text",
+    textposition="top center",
+    marker=dict(size=20, color="red", symbol="star"),
+    name="Most students per semester"
+))
+
+fig.update_layout(
+    title="Total Students per Semester",
+    xaxis_title="Semester",
+    yaxis_title="Total Students",
+    legend_title="Legend",
+)
+
+fig.show()
+
+####
+# task 2: program with the most international students
+
+fig = go.Figure()
+
 df['international_students'] = (
   + df['foreigns_male']
   + df['foreigns_female']
 )
 
-studienBereich = df.groupby('program')['total_students'].sum()
+studienBereich = df.groupby('program')['international_students'].sum()
 
-foreign_program = studienBereich.idxmax()
+foreign_program         = studienBereich.idxmax()
 student_count   = int(studienBereich.max())
 
-print(f"The program {foreign_program!r} has the most foreign students, with a total of: {student_count:,} students")
+studienBereich = studienBereich.reset_index()
 
-# task 3: how high is the female student percentage in the study field with the most female students
+fig.add_trace(go.Scatter(
+    x=studienBereich['program'],
+    y=studienBereich['international_students'],
+    mode="lines+markers",
+    line=dict(color="blue"),
+    name="International students per semester"
+))
+
+fig.add_trace(go.Scatter(
+    x=[foreign_program],
+    y=[student_count],
+    mode="markers+text",
+    textposition="top center",
+    marker=dict(size=20, color="green", symbol="star"),
+    name="Most international students"
+))
+
+fig.update_layout(
+    title="Total International Students per Program",
+    xaxis_title="Program",
+    yaxis_title="Total International Students",
+    legend_title="Legend",
+)
+
+fig.show()
+
+####
+# task 3: the percentage of female students in the program with the most female students
+
+fig = go.Figure()
+
 df['total_female'] = df['germans_female']+df['foreigns_female']
 
-femaleMajority = df.groupby('program')[['total_female', 'total_students']].sum()
+femaleMajority = df.groupby('program', as_index=True)[['total_female', 'total_students']].sum()
 femaleMajority['female_percentage'] = femaleMajority['total_female']/femaleMajority['total_students']
 
+max_female_perecentage = femaleMajority['female_percentage'].max()
+female_dominated_program = femaleMajority[femaleMajority['female_percentage'] == max_female_perecentage].reset_index()['program'].iloc[0]
 
-print(f"The percentage of female students in the program {femaleMajority['female_percentage'].idxmax()!r} -which has the most female students- is: {femaleMajority['female_percentage'].max():.2%}")
+femaleMajority = femaleMajority.reset_index()
 
+fig.add_trace(go.Scatter(
+    x=femaleMajority['program'],
+    y=femaleMajority['female_percentage'],
+    mode="lines+markers",
+    line=dict(color="blue"),
+    name="Female pecentage per prgoram"
+))
 
+fig.add_trace(go.Scatter(
+    x=[female_dominated_program],
+    y=[max_female_perecentage],
+    mode="markers+text",
+    textposition="top center",
+    marker=dict(size=20, color="purple", symbol="star"),
+    name="Most female students"
+))
 
+fig.update_layout(
+    title="Percentage of female students per program",
+    xaxis_title="Program",
+    yaxis_title="Percentage",
+    yaxis_tickformat=".2%",
+    legend_title="Legend",
+)
+
+fig.show()
