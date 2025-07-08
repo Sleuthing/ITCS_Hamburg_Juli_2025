@@ -1,3 +1,12 @@
+###  Aufgabe 1: Das Semester mit den meisten Studenten
+![Figure_1](img/fig_1.png)
+###  Aufgabe 2: Der Studiengang mit den meisten internationalen Studierenden
+![Figure_2](img/fig_2.png)
+###  Aufgabe 3: Der Studiengang mit den meisten Studentinnen
+![Figure_3](img/fig_3.png)
+
+---
+
 # 🎓 Bildung in Deutschland: Studierendenzahlen 2005–2022
 
 ## 🇩🇪
