@@ -5,6 +5,10 @@
 ###  Aufgabe 3: Der Studiengang mit den meisten Studentinnen
 ![Figure_3](img/fig_3.png)
 
+Used [German states](https://github.com/isellsoap/deutschlandGeoJSON/blob/main/2_bundeslaender/2_hoch.geo.json) from this [Repository](https://github.com/isellsoap/deutschlandGeoJSON) for the student distribution.
+
+Inspired and guided by the following [Repository](https://github.com/dataprofessor/population-dashboard)
+
 ---
 
 # 🎓 Bildung in Deutschland: Studierendenzahlen 2005–2022
