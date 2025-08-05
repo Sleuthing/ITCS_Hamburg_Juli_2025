@@ -8,15 +8,15 @@ import sys
 st.markdown("""
 <style>
 [data-testid="stMetric"] {
-    background-color: #292121;
     text-align: center;
     padding: 12px 0;
+    
 }
 
 [data-testid="stMetricLabel"] {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
             
 div[data-testid="stVerticalBlock"]:has(div[data-testid="stDataFrame"]){
@@ -65,6 +65,13 @@ def get_coefficent_variance():
     coefficent_variance = filtered_df['total_students'].std() / filtered_df['total_students'].mean()
     return None if pd.isna(coefficent_variance) else coefficent_variance
 
+def get_numberColConfig(label):
+        return st.column_config.NumberColumn(
+                        label=label, format="localized")
+
+def boldify_text(text):
+    return "**"+text+"**"
+
 def get_enrollment_stability_and_color(coefficient_variance):
     def get_stability_color(stability):
         if stability < 0.2:
@@ -83,8 +90,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 st.set_page_config(layout="wide")
 
-tab1, tab2, tab3 = st.tabs(["ITCS Hamburg 2025 Quiz", "Dynamic Students Graph",
-                                   "Germany Student Distribution Map"])
+tab1, tab2, tab3 = st.tabs(["**ITCS Hamburg 2025 Quiz**", "**Dynamic Students Graph**",
+                                   "**Germany Student Distribution Map**"])
 
 df = load_data('data/Bildung.csv',';')
 
@@ -250,13 +257,13 @@ with tab2:
     col2.plotly_chart(fig)
     
     enrollment_stability, stability_color = get_enrollment_stability_and_color(get_coefficent_variance())
-    col1.metric(f":{stability_color}[Stability of enrollment]", enrollment_stability)
+    col1.metric(f":{stability_color}[**Stability of enrollment**]", enrollment_stability)
     
     first_semester_total_students = get_student_count('total_students', start_semester)
     last_semester_total_students = get_student_count('total_students', end_semester)
     
     enrollment_growth = get_delta_growth(first_semester_total_students, last_semester_total_students)
-    col1.metric(f":{get_growth_color(enrollment_growth)}[Total Enrollment Growth]", f"{enrollment_growth:.2%}")
+    col1.metric(f":{get_growth_color(enrollment_growth)}[**Total Enrollment Growth**]", f"{enrollment_growth:.2%}")
     
     col1_1, col1_2 = col1.columns([1,1])
     col1_3, col1_4 = col1.columns([1,1])
@@ -265,26 +272,20 @@ with tab2:
 
         DEMa_growth, DEFema_growth, INTMa_growth, INTFema_growth = [get_delta_growth(get_student_count(col_name, start_semester),
                                         get_student_count(col_name, end_semester)) for col_name in cols]
-        col1_1.metric(f":{get_growth_color(DEMa_growth)}[DE-M Growth]", f"{DEMa_growth:.2%}")
-        col1_2.metric(f":{get_growth_color(DEFema_growth)}[DE-F Growth]", f"{DEFema_growth:.2%}")
-        col1_3.metric(f":{get_growth_color(INTMa_growth)}[INT-M Growth]", f"{INTMa_growth:.2%}")
-        col1_4.metric(f":{get_growth_color(INTFema_growth)}[INT-F Growth]", f"{INTFema_growth:.2%}")
+        col1_1.metric(f":{get_growth_color(DEMa_growth)}[**DE-M Growth**]", f"{DEMa_growth:.2%}")
+        col1_2.metric(f":{get_growth_color(DEFema_growth)}[**DE-F Growth**]", f"{DEFema_growth:.2%}")
+        col1_3.metric(f":{get_growth_color(INTMa_growth)}[**INT-M Growth**]", f"{INTMa_growth:.2%}")
+        col1_4.metric(f":{get_growth_color(INTFema_growth)}[**INT-F Growth**]", f"{INTFema_growth:.2%}")
     
     show_dataframe = st.checkbox("Show dataframe?")
-
+    
     if show_dataframe:
-        column_format = "localized"
         st.dataframe(filtered_df,hide_index=True,column_config={
-                    "total_students": st.column_config.NumberColumn(
-                        label="Total Students", format=column_format),
-                    "foreigns_male": st.column_config.NumberColumn(
-                        "Foreigners Male", format=column_format),
-                    "germans_male": st.column_config.NumberColumn(
-                        "Germans Male", format=column_format),
-                    "foreigns_female": st.column_config.NumberColumn(
-                        "Foreigners Female", format=column_format),
-                    "germans_female": st.column_config.NumberColumn(
-                        "Germans Female", format=column_format),
+                    "total_students":  get_numberColConfig("Total Students"),
+                    "foreigns_male": get_numberColConfig("Foreigners Male"),
+                    "germans_male": get_numberColConfig("German Male"),
+                    "foreigns_female": get_numberColConfig("Foreigners Female"),
+                    "germans_female": get_numberColConfig("German Female"),
                     "semester": st.column_config.TextColumn(
                         "Semester")
                     })
@@ -319,14 +320,11 @@ with tab3:
         width=100,
     )
 
-    choro.update_layout(
-        template='plotly_dark',
-        plot_bgcolor='rgba(0, 0, 0, 0)',
-        paper_bgcolor='rgba(0, 0, 0, 0)',
-    )
-
     choro.update_geos(
-        projection_scale=8.5, 
+        fitbounds="locations",
+        projection_scale=8.5,
+        visible=False,
+        bgcolor="rgba(0,0,0,0)"
     )
     
     col2.dataframe(choro_df.sort_values(by="total_students"),

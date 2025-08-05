@@ -1,9 +1,15 @@
+Hosted [here](https://germanunistudents.streamlit.app/) on Streamlit
+
+---
+
 ###  Aufgabe 1: Das Semester mit den meisten Studenten
 ![Figure_1](img/fig_1.png)
 ###  Aufgabe 2: Der Studiengang mit den meisten internationalen Studierenden
 ![Figure_2](img/fig_2.png)
 ###  Aufgabe 3: Der Studiengang mit den meisten Studentinnen
 ![Figure_3](img/fig_3.png)
+
+---
 
 Used [German states](https://github.com/isellsoap/deutschlandGeoJSON/blob/main/2_bundeslaender/2_hoch.geo.json) from this [Repository](https://github.com/isellsoap/deutschlandGeoJSON) for the student distribution.
 
