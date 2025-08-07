@@ -2,11 +2,11 @@ Hosted [here](https://germanunistudents.streamlit.app/) on Streamlit
 
 ---
 
-###  Aufgabe 1: Das Semester mit den meisten Studenten
+###  Tab 1: (Aufgabe 1 von 3): Das Semester mit den meisten Studenten
 ![Figure_1](img/fig_1.png)
-###  Aufgabe 2: Der Studiengang mit den meisten internationalen Studierenden
+###  Tab 2: Dynamisches Studentendiagramm
 ![Figure_2](img/fig_2.png)
-###  Aufgabe 3: Der Studiengang mit den meisten Studentinnen
+###  Tab 3: Choroplethenkarte von Studenten
 ![Figure_3](img/fig_3.png)
 
 ---

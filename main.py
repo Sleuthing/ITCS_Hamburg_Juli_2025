@@ -10,7 +10,6 @@ st.markdown("""
 [data-testid="stMetric"] {
     text-align: center;
     padding: 12px 0;
-    
 }
 
 [data-testid="stMetricLabel"] {
@@ -42,41 +41,54 @@ def wrap_scatter(x_axis,y_axis,trace_name,trace_color):
     ) 
     
 def get_growth_color(enrollment_growth):
-    if enrollment_growth <= 0:
+    zero, moderate, high = 0, 0.1, 0.3
+    if enrollment_growth <= zero:
         return "red"
-    elif enrollment_growth < 0.3:
+    elif enrollment_growth < moderate:
         return "orange"
-    else:
+    elif enrollment_growth <= high:
         return "green"
+    else:
+        # anomaly range
+        return "blue"
     
-def get_student_count(col_name, semester):
-    if filtered_df.empty:
+def get_student_count(df, col_name, semester):
+    '''
+    get count of col_name students in the specified semester.
+    '''
+    if df.empty:
         return 0
-    return filtered_df[col_name].where(filtered_df['semester'] == semester).dropna().iloc[0]
+    return df[col_name].where(df['semester'] == semester).dropna().iloc[0]
     
 def get_delta_growth(first_value, last_value):
+    '''
+    the rate of change relative to the starting value (Limited between [0-1])
+    '''
     if first_value == 0:
         if last_value == 0:
             return 0
         return 1 
     return (last_value - first_value) / first_value
 
-def get_coefficent_variance():
-    coefficent_variance = filtered_df['total_students'].std() / filtered_df['total_students'].mean()
+def get_coefficent_variance(df, col_name):
+    coefficent_variance = df[col_name].std() / df[col_name].mean()
     return None if pd.isna(coefficent_variance) else coefficent_variance
 
 def get_numberColConfig(label):
-        return st.column_config.NumberColumn(
-                        label=label, format="localized")
+    return st.column_config.NumberColumn(label=label, format="localized")
 
-def boldify_text(text):
+def boldify(text):
+    '''
+    makes text bold
+    '''
     return "**"+text+"**"
 
 def get_enrollment_stability_and_color(coefficient_variance):
     def get_stability_color(stability):
-        if stability < 0.2:
+        low_stability, high_stability = 0.85, 0.95
+        if stability <= low_stability:
             return "red"
-        elif stability > 0.7:
+        elif stability >= high_stability:
             return "green"
         else:
             return "orange"
@@ -90,8 +102,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 st.set_page_config(layout="wide")
 
-tab1, tab2, tab3 = st.tabs(["**ITCS Hamburg 2025 Quiz**", "**Dynamic Students Graph**",
-                                   "**Germany Student Distribution Map**"])
+tab1, tab2, tab3 = st.tabs([boldify("ITCS Hamburg 2025 Quiz"), boldify("Students Interactive Graph"),
+                                   boldify("Germany Student Distribution Map")])
 
 df = load_data('data/Bildung.csv',';')
 
@@ -256,11 +268,11 @@ with tab2:
     col1, col2 = st.columns([1,3])
     col2.plotly_chart(fig)
     
-    enrollment_stability, stability_color = get_enrollment_stability_and_color(get_coefficent_variance())
+    enrollment_stability, stability_color = get_enrollment_stability_and_color(get_coefficent_variance(filtered_df,'total_students'))
     col1.metric(f":{stability_color}[**Stability of enrollment**]", enrollment_stability)
     
-    first_semester_total_students = get_student_count('total_students', start_semester)
-    last_semester_total_students = get_student_count('total_students', end_semester)
+    first_semester_total_students = get_student_count(filtered_df, 'total_students', start_semester)
+    last_semester_total_students = get_student_count(filtered_df, 'total_students', end_semester)
     
     enrollment_growth = get_delta_growth(first_semester_total_students, last_semester_total_students)
     col1.metric(f":{get_growth_color(enrollment_growth)}[**Total Enrollment Growth**]", f"{enrollment_growth:.2%}")
@@ -269,9 +281,8 @@ with tab2:
     col1_3, col1_4 = col1.columns([1,1])
     show_individual_growths = col1.checkbox("Show indivdual metrics of growth?")
     if show_individual_growths:
-
-        DEMa_growth, DEFema_growth, INTMa_growth, INTFema_growth = [get_delta_growth(get_student_count(col_name, start_semester),
-                                        get_student_count(col_name, end_semester)) for col_name in cols]
+        DEMa_growth, DEFema_growth, INTMa_growth, INTFema_growth = [get_delta_growth(get_student_count(filtered_df, col_name, start_semester),
+                                        get_student_count(filtered_df, col_name, end_semester)) for col_name in cols]
         col1_1.metric(f":{get_growth_color(DEMa_growth)}[**DE-M Growth**]", f"{DEMa_growth:.2%}")
         col1_2.metric(f":{get_growth_color(DEFema_growth)}[**DE-F Growth**]", f"{DEFema_growth:.2%}")
         col1_3.metric(f":{get_growth_color(INTMa_growth)}[**INT-M Growth**]", f"{INTMa_growth:.2%}")
@@ -294,10 +305,11 @@ with tab3:
     st.markdown('## Total students per German state over all semesters and programs')
     col1,col2 = st.columns([3,1.3])
     
-    with open("data/2_hoch.geo.json","r", encoding="utf-8") as f:
-        deutschland_laender = json.load(f)
+    with open("data/2_hoch.geo.json","r", encoding="utf-8") as json_file:
+        deutschland_laender = json.load(json_file)
     choro_df = df.groupby('state_name')['total_students'].sum().reset_index()
 
+    # change Freistaat Sachsen to Sachsen
     choro_df.loc[5,'state_name'] = 'Sachsen'
 
     stateName2Code = {
@@ -313,7 +325,6 @@ with tab3:
         locations="state_code",
         featureidkey="properties.id",
         color="total_students",
-        center={"lat": 51.1657, "lon": 10.4515},
         scope="europe",
         hover_name="state_name",
         height=750,
@@ -322,7 +333,6 @@ with tab3:
 
     choro.update_geos(
         fitbounds="locations",
-        projection_scale=8.5,
         visible=False,
         bgcolor="rgba(0,0,0,0)"
     )
@@ -337,7 +347,7 @@ with tab3:
                     ),
                     "total_students": st.column_config.ProgressColumn(
                         "Total Students",
-                        format="%f",
+                        format="localized",
                         min_value=0,
                         max_value=max(choro_df.total_students),
                     )}
