@@ -1,4 +1,4 @@
-Hosted [here](https://germanunistudents.streamlit.app/) on Streamlit
+Hosted [here](https://german-uni-students.streamlit.app/) on Streamlit
 
 ---
 
