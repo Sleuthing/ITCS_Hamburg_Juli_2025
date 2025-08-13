@@ -5,6 +5,9 @@ from plotly import express as px
 import json
 import sys
 
+# ToDo:
+# Visualize the null values accross the dataset
+
 st.markdown("""
 <style>
 [data-testid="stMetric"] {
@@ -100,7 +103,7 @@ def get_enrollment_stability_and_color(coefficient_variance):
 # to handle the output of some characters
 sys.stdout.reconfigure(encoding='utf-8')
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="DE Students Dashboard", page_icon="🎓")
 
 tab1, tab2, tab3 = st.tabs([boldify("ITCS Hamburg 2025 Quiz"), boldify("Students Interactive Graph"),
                                    boldify("Germany Student Distribution Map")])
@@ -332,9 +335,9 @@ with tab3:
     )
 
     choro.update_geos(
-        fitbounds="locations",
-        visible=False,
-        bgcolor="rgba(0,0,0,0)"
+        fitbounds="locations", # center on Germany
+        visible=False, # hide the rest of the countries
+        bgcolor="rgba(0,0,0,0)" # make background invisible
     )
     
     col2.dataframe(choro_df.sort_values(by="total_students"),
