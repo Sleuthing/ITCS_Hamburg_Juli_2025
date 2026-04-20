@@ -110,6 +110,10 @@ tab1, tab2, tab3 = st.tabs([boldify("ITCS Hamburg 2025 Quiz"), boldify("Students
 
 df = load_data('data/Bildung.csv',';')
 
+# change Freistaat Sachsen to Sachsen
+    # choro_df.loc[15,'state_name'] = 'Sachsen'
+df['state_name'] = df['state_name'].replace('Freistaat Sachsen', 'Sachsen')
+
 # avoid NaNs in result
 cols = ['germans_male', 'germans_female', 'foreigns_male', 'foreigns_female']
 df[cols] = df[cols].fillna(0)
@@ -222,7 +226,8 @@ with tab2:
     start_semester, end_semester = col2.select_slider(
         "Select semester range:",
         semesters[::-1],
-        value=(semesters[0], semesters[-1])
+        value=(semesters[0], semesters[-1]),
+        key="semester_slider_tab2"
     )
     all_states = col1.checkbox("In all states?", value=True)
     if all_states:
@@ -305,16 +310,22 @@ with tab2:
                     })
 
 with tab3:
-    st.markdown('## Total students per German state over all semesters and programs')
+    st.markdown('## Total students per German state over selected semesters')
     col1,col2 = st.columns([3,1.3])
     
     with open("data/2_hoch.geo.json","r", encoding="utf-8") as json_file:
         deutschland_laender = json.load(json_file)
-    choro_df = df.groupby('state_name')['total_students'].sum().reset_index()
-
-    # change Freistaat Sachsen to Sachsen
-    choro_df.loc[5,'state_name'] = 'Sachsen'
-
+    
+    start_semester, end_semester = col2.select_slider(
+        "Select semester range:",
+        semesters[::-1],
+        value=(semesters[0], semesters[-1]),
+        key="semester_slider_tab3"
+    )
+    filtered_df = df[(start_semester <= df['semester']) & (df['semester'] <= end_semester)]
+    
+    choro_df = filtered_df.groupby('state_name')['total_students'].sum().reset_index()
+    
     stateName2Code = {
         feat["properties"]["name"]: feat["properties"]["id"]
         for feat in deutschland_laender["features"]
@@ -322,17 +333,23 @@ with tab3:
 
     choro_df['state_code'] = choro_df['state_name'].apply(lambda name: stateName2Code[name])
 
+    
+
     choro = px.choropleth(
         choro_df,
         geojson=deutschland_laender,
         locations="state_code",
         featureidkey="properties.id",
         color="total_students",
+        color_continuous_scale='Viridis',
+    range_color=[choro_df['total_students'].quantile(0.1), 
+                 choro_df['total_students'].quantile(0.9)],
         scope="europe",
         hover_name="state_name",
         height=750,
         width=100,
     )
+
 
     choro.update_geos(
         fitbounds="locations", # center on Germany
